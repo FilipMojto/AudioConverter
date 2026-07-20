@@ -32,6 +32,8 @@ if args.regex:
     if not input_files:
         print(f"No files matched the regex pattern: {input_file_path}")
         raise SystemExit(1)
+    
+    input_files = [Path(f) for f in input_files]  # Convert to Path objects
 
     print(f"Input files: {input_files}")
     input("Press Enter to continue with the matched files or Ctrl+C to cancel...")
@@ -43,5 +45,8 @@ for input_file_path in input_files:
 
     # output_path.parent.mkdir(parents=True, exist_ok=True)
 
-    video = VideoFileClip(str(input_file_path), verbose=False, logger=None)
-    video.audio.write_audiofile(str(output_path))
+    # how to turn off verbose output from moviepy? I don't want to see the progress bar or any other output, just the final result.
+    video = VideoFileClip(str(input_file_path))
+    print(f"Converting {input_file_path.stem} to {output_path.stem}...")
+    video.audio.write_audiofile(str(output_path), logger=None)
+    print("Done. Final size: {:.2f} MB".format(output_path.stat().st_size / (1024 * 1024)))
