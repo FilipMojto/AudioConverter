@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "audio-converter"
+version = "0.1.0"
+description = "Convert video files to MP3"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = ["imageio-ffmpeg>=0.6.0", "moviepy>=2.2.1"]
+
+[project.scripts]
+mp3 = "src.mp3:main"
+
+[tool.setuptools]
+packages = ["src"]
