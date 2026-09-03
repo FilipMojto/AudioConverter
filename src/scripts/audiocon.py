@@ -2,6 +2,7 @@ from argparse import ArgumentParser
 import glob
 from pathlib import Path
 import subprocess
+import unicodedata
 
 from imageio_ffmpeg import get_ffmpeg_exe
 from moviepy import VideoFileClip
@@ -14,6 +15,16 @@ OUTPUT_DIR = Path(AUDIOCON_DIR) / "audiocon_output"
 
 INPUT_DIR.mkdir(parents=True, exist_ok=True)
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
+
+def normalize_for_search(value: str) -> str:
+    """Remove accents, punctuation, and case differences for filename searches."""
+    value = unicodedata.normalize("NFKD", value)
+    return "".join(
+        character.lower()
+        for character in value
+        if not unicodedata.combining(character) and character.isalnum()
+    )
 
 
 def convert_durationless_file(input_path: Path, output_path: Path) -> None:
@@ -46,7 +57,18 @@ def main() -> None:
     args = parser.parse_args()
 
     input_file_path = Path(INPUT_DIR / args.input)
-    input_files = [input_file_path] if not args.regex else [Path(path) for path in glob.glob(input_file_path.as_posix())]
+    if args.regex:
+        # Compare normalized names so "este si ja" matches
+        # "Ešte si já pohár vána.mp4", regardless of accents or punctuation.
+        search_pattern = normalize_for_search(args.input)
+        input_files = [
+            path
+            for path in INPUT_DIR.iterdir()
+            if path.is_file()
+            and search_pattern in normalize_for_search(path.stem)
+        ]
+    else:
+        input_files = [input_file_path]
 
     if args.regex:
         # input_files = [Path(path) for path in glob.glob(input_file_path.as_posix())]
